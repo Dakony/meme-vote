@@ -16,7 +16,10 @@ function renderMemes() {
 
 async function callStatic(func, args, types) {
   const calledGet = await client
-    .contractCallStatic(contractAddress, "sophia-address", func, { args })
+    .contractCallStatic(contractAddress, "sophia-address", func, {
+      args,
+      callStatic: true
+    })
     .catch(e => console.error(e));
 
   const decodedGet = await client
