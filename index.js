@@ -52,7 +52,7 @@ async function contractCall(func, args, value, types) {
 }
 
 window.addEventListener("load", async () => {
-  $("#loader").show();
+  
 
   client = await Ae.Aepp();
 
