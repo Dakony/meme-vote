@@ -17,11 +17,11 @@ function renderMemes() {
 async function callStatic(func, args, types) {
   const calledGet = await client
     .contractCallStatic(contractAddress, "sophia-address", func, { args })
-    .catch(console.error(e));
+    .catch(console.error());
 
   const decodedGet = await client
     .contractDecodeData(types, calledGet.result.returnValue)
-    .catch(console.error(e));
+    .catch(console.error());
 
   return decodedGet;
 }
@@ -35,7 +35,7 @@ async function contractCall(func, args, value, types) {
     .catch(async e => {
       const decodedError = await client
         .contractDecodeData(types, e.returnValue)
-        .catch(e => console.error(e));
+        .catch(e => console.error());
     });
 
   return calledSet;
