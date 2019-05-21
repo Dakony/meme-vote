@@ -16,10 +16,7 @@ function renderMemes() {
 
 async function callStatic(func, args, types) {
   const calledGet = await client
-    .contractCallStatic(contractAddress, "sophia-address", func, {
-      args,
-      callStatic: true
-    })
+    .contractCallStatic(contractAddress, "sophia-address", func, { args })
     .catch(e => console.error(e));
 
   const decodedGet = await client
@@ -28,7 +25,8 @@ async function callStatic(func, args, types) {
 
   return decodedGet;
 }
-async function contractCall(func, args, value) {
+
+async function contractCall(func, args, value, types) {
   const calledSet = await client
     .contractCall(contractAddress, "sophia-address", contractAddress, func, {
       args,
@@ -47,8 +45,10 @@ window.addEventListener("load", async () => {
   $("#loader").show();
 
   client = await Ae.Aepp();
+
   const getMemesLength = await callStatic("getMemesLength", "()", "int");
   memesLength = getMemesLength.value;
+
   for (let i = 1; i <= memesLength; i++) {
     const meme = await callStatic(
       "getMeme",
@@ -57,10 +57,10 @@ window.addEventListener("load", async () => {
     );
 
     memeArray.push({
-      creatorName: meme.name,
-      memeUrl: meme.url,
+      creatorName: meme.value[2].value,
+      memeUrl: meme.value[1].value,
       index: i,
-      votes: meme.voteCount
+      votes: meme.value[3].value
     });
   }
 
@@ -70,25 +70,30 @@ window.addEventListener("load", async () => {
 });
 
 jQuery("#memeBody").on("click", ".voteBtn", async function(event) {
-  let value = $(this)
-      .siblings("input")
-      .val(),
-    index = event.target.id;
+  $("#loader").show();
 
-  await contractCall("voteMeme", [index], value);
+  const value = $(this)
+    .siblings("input")
+    .val();
+  const dataIndex = event.target.id;
 
-  const foundIndex = memeArray.findIndex(meme => meme.index == event.target.id);
+  await contractCall("voteMeme", `(${dataIndex})`, value, "(int)");
+
+  const foundIndex = memeArray.findIndex(meme => meme.index == dataIndex);
   memeArray[foundIndex].votes += parseInt(value, 10);
+
   renderMemes();
+
   $("#loader").hide();
 });
 
 $("#registerBtn").click(async function() {
   $("#loader").show();
+
   const name = $("#regName").val(),
     url = $("#regUrl").val();
 
-  await contractCall("registerMeme", [url, name], 0);
+  await contractCall("registerMeme", `("${url}","${name}")`, 0, "(int)");
 
   memeArray.push({
     creatorName: name,
@@ -98,5 +103,6 @@ $("#registerBtn").click(async function() {
   });
 
   renderMemes();
+
   $("#loader").hide();
 });
