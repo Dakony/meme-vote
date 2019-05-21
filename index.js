@@ -14,7 +14,7 @@ function renderMemes() {
   $("#memeBody").html(rendered);
 }
 
-async function contractCall(func, args, value, types) {
+async function callStatic(func, args, value, types) {
   const calledSet = await client
     .contractCall(contractAddress, "sophia-address", contractAddress, func, {
       args,
