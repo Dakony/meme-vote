@@ -14,20 +14,41 @@ function renderMemes() {
   $("#memeBody").html(rendered);
 }
 
+async function contractCall(func, args, value, types) {
+  const calledSet = await client
+    .contractCall(contractAddress, "sophia-address", contractAddress, func, {
+      args,
+      options: { amount: value }
+    })
+    .catch(async e => {
+      const decodedError = await client
+        .contractDecodeData(types, e.returnValue)
+        .catch(e => console.error(e));
+    });
+
+  return;
+}
+
 window.addEventListener("load", async () => {
   $("#loader").show();
 
   client = await Ae.Aepp();
-  const calledGet = await client
-    .contractCallStatic(contractAddress, "sophia-address", "getMemesLength", {
-      args: "()"
-    })
-    .catch(e => console.error(e));
-  console.log("calledGet", calledGet);
-  const decodedGet = await client
-    .contractDecodeData(int, calledGet.result.returnValue)
-    .catch(e => console.error(e));
-  console.log("decodeGet", decodedGet.value);
+  const getMemesLength = await callStatic("getMemesLength", "()", "int");
+  memesLength = getMemesLength.value;
+  for (let i = 1; i <= memesLength; i++) {
+    const meme = await callStatic(
+      "getMeme",
+      `(${i})`,
+      "(address, string, string, int)"
+    );
+
+    memeArray.push({
+      creatorName: meme.value[2].value,
+      memeUrl: meme.value[1].value,
+      index: i,
+      votes: meme.value[3].value
+    });
+  }
 
   renderMemes();
 
