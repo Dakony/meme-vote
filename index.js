@@ -25,6 +25,17 @@ async function callStatic(func, args, types) {
 
   return decodedGet;
 }
+async function contractCall(func, args, value) {
+  const contract = await client.getContractInstance(contractSource, {
+    contractAddress
+  });
+  //Make a call to write smart contract func, with aeon value input
+  const calledSet = await contract
+    .call(func, args, { amount: value })
+    .catch(e => console.error(e));
+
+  return calledSet;
+}
 
 window.addEventListener("load", async () => {
   $("#loader").show();
@@ -40,10 +51,10 @@ window.addEventListener("load", async () => {
     );
 
     memeArray.push({
-      creatorName: meme.value[2].value,
-      memeUrl: meme.value[1].value,
+      creatorName: meme.name,
+      memeUrl: meme.url,
       index: i,
-      votes: meme.value[3].value
+      votes: meme.voteCount
     });
   }
 
@@ -53,18 +64,25 @@ window.addEventListener("load", async () => {
 });
 
 jQuery("#memeBody").on("click", ".voteBtn", async function(event) {
-  const value = $(this)
-    .siblings("input")
-    .val();
-  const dataIndex = event.target.id;
-  const foundIndex = memeArray.findIndex(meme => meme.index == dataIndex);
+  let value = $(this)
+      .siblings("input")
+      .val(),
+    index = event.target.id;
+
+  await contractCall("voteMeme", [index], value);
+
+  const foundIndex = memeArray.findIndex(meme => meme.index == event.target.id);
   memeArray[foundIndex].votes += parseInt(value, 10);
   renderMemes();
+  $("#loader").hide();
 });
 
 $("#registerBtn").click(async function() {
+  $("#loader").show();
   const name = $("#regName").val(),
     url = $("#regUrl").val();
+
+  await contractCall("registerMeme", [url, name], 0);
 
   memeArray.push({
     creatorName: name,
@@ -74,4 +92,5 @@ $("#registerBtn").click(async function() {
   });
 
   renderMemes();
+  $("#loader").hide();
 });
