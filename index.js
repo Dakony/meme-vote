@@ -15,21 +15,15 @@ function renderMemes() {
 }
 
 async function callStatic(func, args, types) {
-  const calledGet = await client
-    .contractCallStatic(
-      contractAddress,
-      "sophia-address",
-      contractAddress,
-      func,
-      { args }
-    )
+  const contract = await client.getContractInstance(contractSource, {
+    contractAddress
+  });
+  const calledGet = await contract
+    .call(func, args, { callStatic: true })
     .catch(e => console.error(e));
+  const decodedGet = await calledGet.decode().catch(e => console.error(e));
 
-  const decodeGet = await client
-    .contractDecodeData(types, calledGet.result.returnValue)
-    .catch(e => console.error(e));
-
-  return decodeGet;
+  return decodedGet;
 }
 
 window.addEventListener("load", async () => {
