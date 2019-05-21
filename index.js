@@ -17,11 +17,18 @@ function renderMemes() {
 async function callStatic(func, args, types) {
   const calledGet = await client
     .contractCallStatic(contractAddress, "sophia-address", func, { args })
+    .then(response => {
+      console.log(response);
+    })
     .catch(console.error());
 
-  const decodedGet = await client
-    .contractDecodeData(types, calledGet.result.returnValue)
-    .catch(console.error());
+  const decodedGet = await client.contractDecodeData(
+    types,
+    calledGet.result.returnValue
+  );
+  then(response => {
+    console.log(response);
+  }).catch(console.error());
 
   return decodedGet;
 }
@@ -35,7 +42,10 @@ async function contractCall(func, args, value, types) {
     .catch(async e => {
       const decodedError = await client
         .contractDecodeData(types, e.returnValue)
-        .catch(e => console.error());
+        .then(response => {
+          console.log(response);
+        })
+        .catch(e => console.error(e));
     });
 
   return calledSet;
@@ -66,7 +76,7 @@ window.addEventListener("load", async () => {
 
   renderMemes();
 
-    $("#loader").hide();
+  $("#loader").hide();
 });
 
 jQuery("#memeBody").on("click", ".voteBtn", async function(event) {
