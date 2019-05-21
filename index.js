@@ -15,24 +15,27 @@ function renderMemes() {
 }
 
 async function callStatic(func, args, types) {
-  const contract = await client.getContractInstance(contractSource, {
-    contractAddress
-  });
-  const calledGet = await contract
-    .call(func, args, { callStatic: true })
+  const calledGet = await client
+    .contractCallStatic(contractAddress, "sophia-address", func, { args })
     .catch(e => console.error(e));
-  const decodedGet = await calledGet.decode().catch(e => console.error(e));
+
+  const decodedGet = await client
+    .contractDecodeData(types, calledGet.result.returnValue)
+    .catch(e => console.error(e));
 
   return decodedGet;
 }
 async function contractCall(func, args, value) {
-  const contract = await client.getContractInstance(contractSource, {
-    contractAddress
-  });
-  //Make a call to write smart contract func, with aeon value input
-  const calledSet = await contract
-    .call(func, args, { amount: value })
-    .catch(e => console.error(e));
+  const calledSet = await client
+    .contractCall(contractAddress, "sophia-address", contractAddress, func, {
+      args,
+      options: { amount: value }
+    })
+    .catch(async e => {
+      const decodedError = await client
+        .contractDecodeData(types, e.returnValue)
+        .catch(e => console.error(e));
+    });
 
   return calledSet;
 }
