@@ -66,7 +66,7 @@ window.addEventListener("load", async () => {
 
   renderMemes();
 
-  
+    $("#loader").hide();
 });
 
 jQuery("#memeBody").on("click", ".voteBtn", async function(event) {
